@@ -7,53 +7,44 @@ module Converter
 
   def self.call infile, outfile
     units = []
+
     infile.each do |line|
-      unless line =~ $comment_regex
-        # ret = line.length > 5 ? multiply( line ) : line
-        # puts ret
-        # outfile.print ret
-        line.split( ' ' ).each { |u| units << u }
-      end
+      line.split( ' ' ).each { |u| units << u } unless line =~ $comment_regex
     end
-    meta = units[0] == 'P1' ? units.take( 3 ) : units.take( 4 )
+
+    headers = units[0] == 'P1' ? units.take( 3 ) : units.take( 4 )
     bits = units[0] == 'P1' ? units.last( units.length - 3 ) : units.last( units.length - 4 )
 
-    bits = processBits meta[1].to_i, bits, (units[0] == 'P3' ? 3 : 1)
-    meta = processMeta meta
+    bits = processBits headers[1].to_i, bits, ( units[0] == 'P3' ? 3 : 1 )
+    headers = processHeaders headers
 
-    outfile.print meta * ' '
+    outfile.print headers * ' '
     outfile.print $/
     outfile.print bits * ' '
   end
 
-  def self.multiply line
-    one_line = ''
-    line.split( ' ' ).each { |n| $multiplier.to_i.times do one_line << "#{n} " end }
-    ret = ''
-    $multiplier.times do |l| ret << one_line << $/ end 
-    ret
+  private
+
+  def self.processHeaders headers
+    headers[1] = ( headers[1].to_i * $multiplier )
+    headers[2] = ( headers[2].to_i * $multiplier )
+    headers
   end
 
-  def self.processMeta meta
-    meta[1] = ( meta[1].to_i * $multiplier ).to_s
-    meta[2] = ( meta[2].to_i * $multiplier ).to_s
-    meta
-  end
-
-  def self.processBits size, bits, grouping = 1
+  def self.processBits line_size, bits, grouping
     ret = []
-    bits.each_slice( size * grouping ).each do |line|
+
+    bits.each_slice( line_size * grouping ).each do |line|
       row = []
+
       line.each_slice( grouping ).each do |u|
-        $multiplier.times do row << u end
+        $multiplier.times { row << u }
       end
-      $multiplier.times do ret << row << $/ end
+
+      $multiplier.times { ret << row << $/ }
     end
 
     ret.flatten
-  end
-
-  def self.processP3Bits size, bits
   end
 
 end
