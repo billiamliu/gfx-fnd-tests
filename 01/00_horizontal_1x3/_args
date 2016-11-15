@@ -1,2 +1,2 @@
 cp out.pnm TMP
-PROG 7x5 2,2 4,2
+PROG 7x5 2,2 4,2 TMP

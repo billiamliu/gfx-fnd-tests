@@ -9,19 +9,26 @@ import tempfile
 
 CLEAN_UP_TMPFILES = True
 
-#print("argv", sys.argv)
-
 tester_fn, testee_fn, target_test = sys.argv[:3]
 arglines = sys.argv[3:]
 
 def diff_pnms(left_file, right_file):
     #print(left_file, right_file)
     def tokenize(pnm_file):
-        def decommentify(line):
+        def decommentify_line(line):
             return line.split("#")[0]
         lines = pnm_file.readlines()
-        lines_no_comments = map(decommentify, lines)
+        lines_no_comments = map(decommentify_line, lines)
         tokens = "".join(lines_no_comments).split()
+        magic_num = tokens[0]
+        res_x = int(tokens[1], 10)
+        res_y = int(tokens[2], 10)
+        if magic_num == 'P1':
+          depth = 1
+          raster = tokens[3:]
+        else:
+          depth = tokens[3]
+          raster = tokens[4:]
         return tokens
     return tokenize(left_file) == tokenize(right_file)
 
@@ -48,9 +55,11 @@ def run_and_compare_arglines(arglines):
             #print("tempfile", tmp_fn)
             tmpfiles.append((tmp_fh, tmp_fn))
             run_argline(argline, tmp_fh, tmp_fn)
-        correctnesses = [diff_pnms(os.fdopen(tmpfiles[0][0]), os.fdopen(outfile_fh)) 
-                        for outfile_fh, outfile_fn in tmpfiles[1:]]
-        #print(correctnesses)
+        correctnesses = []
+        for outfile_fh, outfile_fn in tmpfiles[1:]:
+            with open(tmpfiles[0][1]) as truth:
+              with open(outfile_fn) as candidate:
+                correctnesses.append(diff_pnms(truth, candidate))
         return len(correctnesses) - sum(correctnesses, 0)    # exit value is the number of mismatches
     finally:
         if CLEAN_UP_TMPFILES:
