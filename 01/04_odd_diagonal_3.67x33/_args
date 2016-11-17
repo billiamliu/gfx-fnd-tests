@@ -1,0 +1,3 @@
+cp out.pnm TMP
+PROG 12x34 1,2 9,34 TMP
+PROG 12x34 9,34 1,2 TMP
