@@ -1,0 +1,43 @@
+Given a JSON description of a room and a camera, report on what the camera sees.
+
+Your program should take two arguments: the first is an input .json file, the second is output.
+
+The input file will contain one JSON object, roughly like this:
+
+    {
+      walls: [
+        { x0: -1, y0: 1, x1: 3, y1: 5 },
+        { x0: 3, y0: -2, x1: 3, y1: 2 },
+      ],
+      camera_x: 0.5
+      camera_y: 1.0,
+      angles: [
+        0,
+        1.5708,
+        4,
+      ],
+    }
+
+Note that angles are measured in radians, and the angle system is one used by math nerds, not the
+more common clock-face system..  If you stand at 0,0, and your angle is 0 radians, you are looking
+along the positive x-axis, towards (1000, 0).  If you change your angle to pi/2 radians (a.k.a.  90
+degrees), you are looking along the positive y-axis, towards (0, 1000).
+
+You should write an output file, containing one JSON object, roughly like this:
+
+    {
+      collisions: [
+        { wall: 1, distance: 2.5 },
+        { wall: 0, distance: 1.499 },
+        { wall: undefined, distance: Infinity },
+      ]
+    }
+
+That's three answers (in one file), corresponding to the three 'angles' in the input JSON.
+
+collisions[i] is the answer to this question: if these walls exist, and we start a ray at the
+coordinates (camera_x, camera_y), and we shoot that ray in the direction indicated by angle[i], what
+wall will we hit, and how far away will it be?
+
+Wall IDs should be precise, of course.  At this time I haven't yet written the tester for this
+problem, but I intend that it should allow a tiny bit of flexibility in the distance, perhaps 0.1%.
