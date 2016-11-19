@@ -41,6 +41,15 @@ module LineLike
       @rotation
     end
 
+    def exist_at? x, y
+      # TODO test it
+      on_ray?( x, y ) && if rotation <= Math::PI
+        y >= yo
+      else
+        y <= yo
+      end
+    end
+
   end
 
   def rotation_degrees
@@ -79,29 +88,39 @@ module LineLike
     r
   end
 
+  def intercept? line
+    return false unless q = intercept_at( line )
+    
+    exist_at?( *q ) && line.exist_at?( *q )
+  end
+
   def parallel_to? line
     min, max = [ rotation, line.rotation ].minmax
     equal?( min, max ) || equal?( min + Math::PI, max )
   end
 
-  def exists_at? x, y
-    min_x, max_x = [ @xo, @xe ].minmax
-    min_y, max_y = [ @yo, @ye ].minmax
+  def exist_at? x, y
+    on_ray?( x, y ) && if dy >= 0
+      ( yo..(yo + dy) ).cover? y
+    else
+      ( (yo + dy)..yo ).cover? y
+    end
+  end
 
-    ( (min_x - ROUNDING_ERROR)..(max_x + ROUNDING_ERROR) ).cover?( x ) &&
-      ( (min_y - ROUNDING_ERROR)..(max_y + ROUNDING_ERROR) ).cover?( y )
+  def on_ray? x, y
+    slope * x + bias
   end
 
   def intercept_at line
     return nil if parallel_to? line
     # y = mx + b
     # x = ( b2 - b1 ) / ( m1 - m2 )
-    x = ( line.bias - bias ) / ( slope - line.slope )
+    x = ( line.bias - bias ) / ( slope - line.slope ).to_f
     y = slope * x + bias
     [ x, y ]
   end
 
-  private
+  # private
 
   ROUNDING_ERROR = 0.001
 
@@ -173,7 +192,7 @@ class Line
     @xo, @yo, @xe, @ye, @rotation = xo, yo, xe, ye, rotation
   end
 
-  def exists_at? x, y
+  def exist_at? x, y
     min_x, max_x = [ @xo, @xe ].minmax
     min_y, max_y = [ @yo, @ye ].minmax
 
@@ -187,7 +206,7 @@ class Line
     y = slope * x + bias
     p x
     p y
-    exists_at?( x, y ) && line.exists_at?( x, y )
+    exist_at?( x, y ) && line.exist_at?( x, y )
   end
 
   private

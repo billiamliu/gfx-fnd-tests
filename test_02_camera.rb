@@ -40,13 +40,13 @@ class TestLineModule < MiniTest::Test
     [
       [1,1], [-1.0001, -1], [1.0001, 1], [-1, -1.0001], [1, 1.0001]
     ].map do |spec|
-      # assert @obj.equal?( *spec )
+      assert @obj.equal?( *spec )
     end
 
     [
       [1,2], [-1,-2], [2,1], [-2,-1]
     ].map do |spec|
-      # assert ! @obj.equal?( *spec )
+      assert ! @obj.equal?( *spec )
     end
   end
 
@@ -73,7 +73,7 @@ class TestLineModule < MiniTest::Test
       [ 1, @q3 ],
       [ -1, @q4 ]
     ].map do |spec|
-      # assert_equal spec[0], Line.new( *spec[1] ).slope
+      assert_equal spec[0], Line.new( *spec[1] ).slope
     end
   end
 
@@ -90,7 +90,7 @@ class TestLineModule < MiniTest::Test
       [ -6, [ *@q2, -3, -3 ] ],
       [ 0, [ *@q2, 3, -3 ] ]
     ].map do |spec|
-      # assert_equal spec[0], Line.new( *spec[1] ).bias
+      assert_equal spec[0], Line.new( *spec[1] ).bias
     end
   end
 
@@ -107,7 +107,43 @@ class TestLineModule < MiniTest::Test
 
   def test_intercept_at
     [
+      [ nil, [ *@q1, 0 ], [ *@q1, 3 ] ],
+      [ [0,0], [ *@q1 ], [ *@q2 ] ],
+      [ [1,1], [ *@q1 ], [ *@q2, 0, 2 ] ],
+      [ [0.5,0.5], [ *@q1 ], [ *@q2, 0, 1 ] ],
+      [ [-1,-1], [ *@q3 ], [ *@q4, 0, -2 ] ]
     ].map do |spec|
+      assert_equal spec[0],
+        Line.new( *spec[1] ).intercept_at( Line.new( *spec[2] ) )
+    end
+  end
+
+  def test_exist_at
+    [
+      [ true, @q1, [1,1] ],
+      [ true, @q2, [-1,1] ],
+      [ true, @q3, [-1,-1] ],
+      [ true, @q4, [1,-1] ],
+
+      [ false, @q1, [-1,-1] ],
+      [ false, @q2, [1,-1] ],
+      [ false, @q3, [1,1] ],
+      [ false, @q4, [-1,1] ]
+    ].map do |spec|
+      assert_equal spec[0], Line.new( *spec[1] ).exist_at?( *spec[2] )
+    end
+  end
+
+  def test_intercept
+    [
+      [ false, @q1, @q1 ],
+      [ true, @q1, @q2 ],
+      [ true, @q3, @q4 ],
+      [ true, [*@q1,-3], [*@q2,0,1] ],
+      [ true, [*@q3,3], [*@q4,0,-1] ]
+    ].map do |spec|
+      assert_equal spec[0],
+        Line.new( *spec[1] ).intercept?( Line.new( *spec[2] ) )
     end
   end
 
