@@ -31,6 +31,13 @@ end
 
 module LineLike
 
+  ROUNDING_ERROR = 0.001
+  PI = Math::PI
+
+  def self.equal? a, b
+    a == b || ( a - b ).abs < ROUNDING_ERROR
+  end
+
   module Ray
 
     include LineLike
@@ -42,47 +49,61 @@ module LineLike
     end
 
     def exist_at? x, y
-      # TODO test it
-      on_ray?( x, y ) && if rotation <= Math::PI
+      on_ray?( x, y ) && if rotation <= PI
         y >= yo
       else
         y <= yo
       end
     end
 
+    def on_ray? x, y
+      slope * x + bias
+    end
+
+    def slope
+      case ( rotation / ( PI / 2 ) + 1 ).floor
+      when 1
+        Math.tan rotation
+      when 2
+        -1 * Math.tan( PI - rotation ).to_f
+      when 3
+        Math.tan( rotation - PI ).to_f
+      when 4
+        -1 * Math.tan( PI - ( rotation - PI ) ).to_f
+      end
+    end
+
   end
 
   def rotation_degrees
-    rotation * 180 / Math::PI
+    rotation * 180 / PI
   end
 
   def rotation
-    pi = Math::PI
-
     #up
     if dx == 0 && dy > 0
-      r = pi / 2
+      r = PI / 2
     #down
     elsif dx == 0 && dy < 0
-      r = pi * 1.5
+      r = PI * 1.5
     #right
     elsif dx > 0 && dy == 0
       r = 0
     #left
     elsif dx < 0 && dy == 0
-      r = pi
+      r = PI
     #Q1
     elsif dx > 0 && dy > 0
       r = theta
     #Q2
     elsif dx < 0 && dy > 0
-      r = theta + pi / 2 
+      r = theta + PI / 2 
     #Q3
     elsif dx < 0 && dy < 0
-      r = theta + pi
+      r = theta + PI
     #Q4
     elsif dx > 0 && dy < 0
-      r = theta + pi * 1.5
+      r = theta + PI * 1.5
     end
 
     r
@@ -96,7 +117,7 @@ module LineLike
 
   def parallel_to? line
     min, max = [ rotation, line.rotation ].minmax
-    equal?( min, max ) || equal?( min + Math::PI, max )
+    min == max || min + PI == max
   end
 
   def exist_at? x, y
@@ -120,14 +141,6 @@ module LineLike
     [ x, y ]
   end
 
-  # private
-
-  ROUNDING_ERROR = 0.001
-
-  def equal? a, b
-    a == b || ( a - b ).abs < ROUNDING_ERROR
-  end
-
   def theta
     Math.atan( dy / dx ).abs
   end
@@ -145,7 +158,6 @@ end
 module Pixelator
 
   def p
-
   end
 
   def pixels
@@ -185,28 +197,10 @@ module Pixelator
 end
 
 class Line
-  include ::LineLike
-  include ::Pixelator
+  include LineLike
 
-  def initialize xo:, yo:, xe: Float::INFINITY, ye: Float::INFINITY, rotation: nil
-    @xo, @yo, @xe, @ye, @rotation = xo, yo, xe, ye, rotation
-  end
-
-  def exist_at? x, y
-    min_x, max_x = [ @xo, @xe ].minmax
-    min_y, max_y = [ @yo, @ye ].minmax
-
-    ( (min_x - ROUNDING_ERROR)..(max_x + ROUNDING_ERROR) ).cover?( x ) &&
-      ( (min_y - ROUNDING_ERROR)..(max_y + ROUNDING_ERROR) ).cover?( y )
-  end
-
-  def intercept_with? line
-    return false if parallel_to? line
-    x = ( line.bias - bias ) / ( slope - line.slope )
-    y = slope * x + bias
-    p x
-    p y
-    exist_at?( x, y ) && line.exist_at?( x, y )
+  def initialize xo:, yo:, xe:, ye:
+    @xo, @yo, @xe, @ye = xo, yo, xe, ye
   end
 
   private
@@ -219,6 +213,28 @@ class Line
     @ye - @yo
   end
 
+end
+
+class Ray
+  include LineLike::Ray
+
+  def initialize xo:, yo:, rotation:
+    @xo, @yo, @rotation = xo, yo, rotation
+  end
+
+  private
+
+  def xo
+    @xo
+  end
+
+  def yo
+    yo
+  end
+
+  def rotation
+    @rotation
+  end
 end
 
 class Camera

@@ -34,19 +34,25 @@ class TestLineModule < MiniTest::Test
     @q2 = [ - 10,   10 ]
     @q3 = [ - 10, - 10 ]
     @q4 = [   10, - 10 ]
+
+    segment = Math::PI / 4
+    @r1 = segment
+    @r2 = segment * 3
+    @r3 = segment * 5
+    @r4 = segment * 7
   end
   
   def test_equal
     [
       [1,1], [-1.0001, -1], [1.0001, 1], [-1, -1.0001], [1, 1.0001]
     ].map do |spec|
-      assert @obj.equal?( *spec )
+      assert LineLike.equal?( *spec )
     end
 
     [
       [1,2], [-1,-2], [2,1], [-2,-1]
     ].map do |spec|
-      assert ! @obj.equal?( *spec )
+      assert ! LineLike.equal?( *spec )
     end
   end
 
@@ -119,7 +125,7 @@ class TestLineModule < MiniTest::Test
   end
 
   def test_exist_at
-    [
+    [ # testing line segments
       [ true, @q1, [1,1] ],
       [ true, @q2, [-1,1] ],
       [ true, @q3, [-1,-1] ],
@@ -132,10 +138,24 @@ class TestLineModule < MiniTest::Test
     ].map do |spec|
       assert_equal spec[0], Line.new( *spec[1] ).exist_at?( *spec[2] )
     end
+
+    [ # testing rays
+      [ true, [0,0,@r1], [3,3] ],
+      [ true, [0,0,@r2], [-3,3] ],
+      [ true, [0,0,@r3], [-3,-3] ],
+      [ true, [0,0,@r4], [3,-3] ],
+
+      [ false, [0,0,@r1], [-3,-3] ],
+      [ false, [0,0,@r2], [3,-3] ],
+      [ false, [0,0,@r3], [3,3] ],
+      [ false, [0,0,@r4], [-3,3] ]
+    ].map do |spec|
+      assert_equal spec[0], Ray.new( *spec[1] ).exist_at?( *spec[2] )
+    end
   end
 
   def test_intercept
-    [
+    [ # test line segments
       [ false, @q1, @q1 ],
       [ true, @q1, @q2 ],
       [ true, @q3, @q4 ],
@@ -144,6 +164,16 @@ class TestLineModule < MiniTest::Test
     ].map do |spec|
       assert_equal spec[0],
         Line.new( *spec[1] ).intercept?( Line.new( *spec[2] ) )
+    end
+
+    [
+      [ true, [0,0,@r1], [999,0,@r2] ],
+      [ true, [0,0,@r1], [0,0,@r3 + 0.1] ],
+      [ false, [1,-1,@r4], [-1,1,@r2] ],
+      [ false, [0,0,@r1], [0,0,@r1] ]
+    ].map do |spec|
+      assert_equal spec[0],
+        Ray.new( *spec[1] ).intercept?( Ray.new( *spec[2] ) )
     end
   end
 
