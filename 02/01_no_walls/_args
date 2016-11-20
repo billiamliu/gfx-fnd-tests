@@ -1,0 +1,2 @@
+cat out.json TMP
+PROG in.json TMP
