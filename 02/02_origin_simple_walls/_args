@@ -1,0 +1,3 @@
+cp out.json TMP
+PROG in.json TMP
+PROG in_swap_endpoints.json TMP

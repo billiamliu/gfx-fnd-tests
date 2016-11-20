@@ -1,0 +1,8 @@
+{"collisions": [
+  {"wall": 0, "distance": 3.0}, 
+  {"wall": null, "distance": null}, 
+  {"wall": null, "distance": null}, 
+  {"wall": null, "distance": null}, 
+  {"wall": null, "distance": null}, 
+  {"wall": 1, "distance": 2.0}
+]}

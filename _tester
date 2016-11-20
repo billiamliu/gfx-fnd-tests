@@ -1,69 +1,11 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import os
-import subprocess
 import sys
-import tempfile
+import test_lib
 
-CLEAN_UP_TMPFILES = True
+if __name__ == '__main__':
+  tester_fn, testee_fn, target_test = sys.argv[:3]
+  arglines = sys.argv[3:]
+  sys.exit(test_lib.run_and_compare_arglines(arglines, testee_fn, target_test))
 
-tester_fn, testee_fn, target_test = sys.argv[:3]
-arglines = sys.argv[3:]
 
-def diff_pnms(left_file, right_file):
-    #print(left_file, right_file)
-    def tokenize(pnm_file):
-        def decommentify_line(line):
-            return line.split("#")[0]
-        lines = pnm_file.readlines()
-        lines_no_comments = map(decommentify_line, lines)
-        tokens = "".join(lines_no_comments).split()
-        magic_num = tokens[0]
-        res_x = int(tokens[1], 10)
-        res_y = int(tokens[2], 10)
-        if magic_num == 'P1':
-          depth = 1
-          raster = tokens[3:]
-        else:
-          depth = tokens[3]
-          raster = tokens[4:]
-        return tokens
-    return tokenize(left_file) == tokenize(right_file)
-
-def run_argline(argline, tmp_fh, tmp_fn):
-    # TODO: respect PROG whether it's on-the-PATH or it's relative-path
-    argline = argline.split()
-    # set up CWD
-    old_cwd = os.getcwd()
-    os.chdir(target_test)
-    # fix up argline using TMP
-    argline2 = [tmp_fn if word == 'TMP' else word for word in argline]
-    # fix up argline using PROG
-    argline3 = [testee_fn if word == 'PROG' else word for word in argline2]
-    # run it
-    subprocess.call(argline3)
-    # repair CWD
-    os.chdir(old_cwd)
-
-def run_and_compare_arglines(arglines):
-    tmpfiles = []
-    try:
-        for argline in arglines:
-            tmp_fh, tmp_fn = tempfile.mkstemp()
-            #print("tempfile", tmp_fn)
-            tmpfiles.append((tmp_fh, tmp_fn))
-            run_argline(argline, tmp_fh, tmp_fn)
-        correctnesses = []
-        for outfile_fh, outfile_fn in tmpfiles[1:]:
-            with open(tmpfiles[0][1]) as truth:
-              with open(outfile_fn) as candidate:
-                correctnesses.append(diff_pnms(truth, candidate))
-        return len(correctnesses) - sum(correctnesses, 0)    # exit value is the number of mismatches
-    finally:
-        if CLEAN_UP_TMPFILES:
-            for tmpfile in tmpfiles:
-                os.remove(tmpfile[1])
-
-sys.exit(run_and_compare_arglines(arglines))
