@@ -1,2 +1,2 @@
-cat out.json TMP
+cp out.json TMP
 PROG in.json TMP
