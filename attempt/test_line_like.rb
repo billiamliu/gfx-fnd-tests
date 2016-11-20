@@ -1,33 +1,12 @@
 require 'minitest/autorun'
-require_relative 'ans_02_camera'
+require_relative 'line_like'
 
-class TestLineModule < MiniTest::Test
+class TestLineLike < MiniTest::Test
 
-  class Line
-    include LineLike
-
-    attr_reader :dx, :dy
-    attr_accessor :xo, :yo
-
-    def initialize dx, dy, xo = 0, yo = 0
-      @dx, @dy, @xo, @yo = dx, dy, xo, yo
-    end
-  end
-
-  class Ray
-    include LineLike::Ray
-
-    attr_reader :xo, :yo, :rotation
-
-    def initialize xo, yo, rotation
-      @xo, @yo, @rotation = xo, yo, rotation
-    end
-  end
-
+  Line = LineLike::Example::Line
+  Ray = LineLike::Example::Ray
 
   def setup
-    @obj = Object.new
-    @obj.extend LineLike
     @pi = Math::PI
 
     @q1 = [   10,   10 ]
@@ -35,7 +14,7 @@ class TestLineModule < MiniTest::Test
     @q3 = [ - 10, - 10 ]
     @q4 = [   10, - 10 ]
 
-    segment = Math::PI / 4
+    segment = @pi / 4
     @r1 = segment
     @r2 = segment * 3
     @r3 = segment * 5
@@ -77,7 +56,11 @@ class TestLineModule < MiniTest::Test
       [ 1, @q1 ],
       [ -1, @q2 ],
       [ 1, @q3 ],
-      [ -1, @q4 ]
+      [ -1, @q4 ],
+      [ 0, [10, 0] ],
+      [ nil, [0, 10] ],
+      [ 0, [-10, 0] ],
+      [ nil, [0, -10] ]
     ].map do |spec|
       assert_equal spec[0], Line.new( *spec[1] ).slope
     end
