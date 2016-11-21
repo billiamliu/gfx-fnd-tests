@@ -7,6 +7,18 @@ module LineLike
     a == b || ( a - b ).abs < ROUNDING_ERROR
   end
 
+  def self.intercept_distance_between line, ray
+    return nil unless ray.intercept? line
+    intercept = ray.intercept_at line
+    find_distance ray.xo, ray.yo, *intercept
+  end
+
+  def self.find_distance xo, yo, xe, ye
+    dx = xe - yo
+    dy = ye - yo
+    Math.sqrt( dx ** 2.0 + dy ** 2.0 ).abs
+  end
+
   module Ray
 
     include LineLike
@@ -114,6 +126,7 @@ module LineLike
   end
 
   def intercept? line
+    return false if parallel_to? line
     return false unless q = intercept_at( line )
     
     exist_at?( *q ) && line.exist_at?( *q )
@@ -138,11 +151,13 @@ module LineLike
 
   def intercept_at line
     return nil if parallel_to? line
-    # y = mx + b
-    # x = ( b2 - b1 ) / ( m1 - m2 )
-    x = ( line.bias - bias ) / ( slope - line.slope ).to_f
-    y = slope * x + bias
-    [ x, y ]
+    unless slope.nil? || line.slope.nil?
+      x = ( line.bias - bias ) / ( slope - line.slope ).to_f
+      y = slope * x + bias
+      [ x, y ]
+    else
+      raise NoMethodError, 'not inplemented yet'      
+    end
   end
 
   def theta

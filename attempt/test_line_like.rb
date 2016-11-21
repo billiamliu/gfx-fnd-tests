@@ -100,7 +100,9 @@ class TestLineLike < MiniTest::Test
       [ [0,0], [ *@q1 ], [ *@q2 ] ],
       [ [1,1], [ *@q1 ], [ *@q2, 0, 2 ] ],
       [ [0.5,0.5], [ *@q1 ], [ *@q2, 0, 1 ] ],
-      [ [-1,-1], [ *@q3 ], [ *@q4, 0, -2 ] ]
+      [ [-1,-1], [ *@q3 ], [ *@q4, 0, -2 ] ],
+      # [ [0,3], [0, 10], [3, 0, 0, 3] ], # vertical intercept horizontal
+      # [ [3,0], [10, 0], [0, 3, 3, -1] ] # horizontal intercept vertical
     ].map do |spec|
       assert_equal spec[0],
         Line.new( *spec[1] ).intercept_at( Line.new( *spec[2] ) )
@@ -118,6 +120,7 @@ class TestLineLike < MiniTest::Test
       [ false, @q2, [1,-1] ],
       [ false, @q3, [1,1] ],
       [ false, @q4, [-1,1] ]
+      # TODO add horizontal and verticals
     ].map do |spec|
       assert_equal spec[0], Line.new( *spec[1] ).exist_at?( *spec[2] )
     end
@@ -132,6 +135,7 @@ class TestLineLike < MiniTest::Test
       [ false, [0,0,@r2], [3,-3] ],
       [ false, [0,0,@r3], [3,3] ],
       [ false, [0,0,@r4], [-3,3] ]
+      # TODO add horizontal and verticals
     ].map do |spec|
       assert_equal spec[0], Ray.new( *spec[1] ).exist_at?( *spec[2] )
     end
