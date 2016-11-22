@@ -101,8 +101,8 @@ class TestLineLike < MiniTest::Test
       [ [1,1], [ *@q1 ], [ *@q2, 0, 2 ] ],
       [ [0.5,0.5], [ *@q1 ], [ *@q2, 0, 1 ] ],
       [ [-1,-1], [ *@q3 ], [ *@q4, 0, -2 ] ],
-      # [ [0,3], [0, 10], [3, 0, 0, 3] ], # vertical intercept horizontal
-      # [ [3,0], [10, 0], [0, 3, 3, -1] ] # horizontal intercept vertical
+      [ [0,3], [0, 10], [3, 0, 0, 3] ], # vertical intercept horizontal
+      [ [3,0], [10, 0], [0, 3, 3, -1] ] # horizontal intercept vertical
     ].map do |spec|
       assert_equal spec[0],
         Line.new( *spec[1] ).intercept_at( Line.new( *spec[2] ) )
@@ -119,10 +119,17 @@ class TestLineLike < MiniTest::Test
       [ false, @q1, [-1,-1] ],
       [ false, @q2, [1,-1] ],
       [ false, @q3, [1,1] ],
-      [ false, @q4, [-1,1] ]
-      # TODO add horizontal and verticals
+      [ false, @q4, [-1,1] ],
+      # add horizontal and verticals
+      [ true, [10, 0], [1, 0] ],
+      [ false, [10, 0], [11, 0] ],
+      [ false, [10, 0], [-1, 0] ],
+      [ true, [0, -10], [0, -3] ],
+      [ false, [0, -10], [0, 1] ],
+      [ false, [0, -10], [0, -11] ],
     ].map do |spec|
-      assert_equal spec[0], Line.new( *spec[1] ).exist_at?( *spec[2] )
+      assert_equal spec[0], Line.new( *spec[1] ).exist_at?( *spec[2] ),
+        "expected #{ spec[0] } for line #{ spec[1] }, at #{ spec[2] }"
     end
 
     [ # testing rays
@@ -134,10 +141,14 @@ class TestLineLike < MiniTest::Test
       [ false, [0,0,@r1], [-3,-3] ],
       [ false, [0,0,@r2], [3,-3] ],
       [ false, [0,0,@r3], [3,3] ],
-      [ false, [0,0,@r4], [-3,3] ]
+      [ false, [0,0,@r4], [-3,3] ],
       # TODO add horizontal and verticals
+      [ true, [0, 0, 0], [1098, 0] ],
+      # [ false, [0, 0, 0], [1099, 1] ],
+      # [ false, [0, 0, 0], [-1, 0] ],
     ].map do |spec|
-      assert_equal spec[0], Ray.new( *spec[1] ).exist_at?( *spec[2] )
+      assert_equal spec[0], Ray.new( *spec[1] ).exist_at?( *spec[2] ),
+        "expected #{ spec[0] } for line #{ spec[1] }, at #{ spec[2] }"
     end
   end
 
@@ -160,7 +171,8 @@ class TestLineLike < MiniTest::Test
       [ false, [0,0,@r1], [0,0,@r1] ]
     ].map do |spec|
       assert_equal spec[0],
-        Ray.new( *spec[1] ).intercept?( Ray.new( *spec[2] ) )
+        Ray.new( *spec[1] ).intercept?( Ray.new( *spec[2] ) ),
+        "expected #{ spec[0] } for ray #{ spec[1] }, with ray #{ spec[2] }"
     end
   end
 

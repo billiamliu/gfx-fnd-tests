@@ -119,7 +119,7 @@ class Attempt
 end
 
 parsed = McParseface.new ARGV
-p Attempt.new( parsed, Wall, Sight ).()
+puts Attempt.new( parsed, Wall, Sight ).()
 
 
 

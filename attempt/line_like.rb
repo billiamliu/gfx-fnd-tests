@@ -30,15 +30,32 @@ module LineLike
     end
 
     def exist_at? x, y
-      on_ray?( x, y ) && if rotation < PI
+      return false unless on_ray? x, y
+
+      case quadrant
+      when :east
+        x >= xo
+      when :west
+        x <= xo
+      when :north
         y >= yo
-      else
+      when :south
         y <= yo
+      else
+        if rotation < PI
+          y >= yo
+        else
+          y <= yo
+        end
       end
     end
 
     def on_ray? x, y
-      slope * x + bias
+      unless slope.nil?
+        y == slope * xo + bias
+      else
+        x == xo
+      end
     end
 
     def slope
@@ -138,15 +155,38 @@ module LineLike
   end
 
   def exist_at? x, y
-    on_ray?( x, y ) && if dy >= 0
-      ( yo..(yo + dy) ).cover? y
-    else
-      ( (yo + dy)..yo ).cover? y
+    return false unless on_ray? x, y
+    
+    case quadrant
+      when :east
+        y == yo && cover_x?( x )
+      when :north
+        x == xo && cover_y?( y )
+      when :west
+        y == yo && cover_x?( x )
+      when :south
+        x == xo && cover_y?( y )
+      else
+        cover_x?( x ) && cover_y?( y )
     end
   end
 
+  def cover_x? x
+    min, max = [ xo, xo + dx ].minmax
+    ( min..max ).cover? x
+  end
+
+  def cover_y? y
+    min, max = [ yo, yo + dy ].minmax
+    ( min..max ).cover? y
+  end
+
   def on_ray? x, y
-    slope * x + bias
+    unless slope.nil?
+      slope * x + bias
+    else
+      x == xo
+    end
   end
 
   def intercept_at line
@@ -156,7 +196,11 @@ module LineLike
       y = slope * x + bias
       [ x, y ]
     else
-      raise NoMethodError, 'not inplemented yet'      
+      if slope.nil?
+        [ xo, line.slope * xo + line.bias ]
+      else # line.slope is nil
+        [ line.xo, slope * xo + bias ]
+      end
     end
   end
 
