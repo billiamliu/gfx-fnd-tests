@@ -86,6 +86,17 @@ class CollisionDetector
       .sort_by { |res| res[:distance] }
   end
 
+  def collisions
+    @walls
+      .map do |w|
+        dist = distance_between w, @sight
+        id = dist == Float::INFINITY ? nil : w.id
+        { wall: id, distance: dist }
+      end
+      .sort_by { |coll| coll[ :distance ] }
+      .first
+  end
+
 end
 
 class Attempt

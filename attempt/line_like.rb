@@ -2,13 +2,14 @@ module LineLike
 
   ROUNDING_ERROR = 0.001
   PI = Math::PI
+  INF = Float::INFINITY
 
   def self.equal? a, b
     a == b || ( a - b ).abs < ROUNDING_ERROR
   end
 
   def self.intercept_distance_between line, ray
-    return nil unless ray.intercept? line
+    return INF unless ray.intercept? line
     intercept = ray.intercept_at line
     find_distance ray.xo, ray.yo, *intercept
   end
