@@ -45,10 +45,6 @@ class McParseface
     @outfile = argv[1]
   end
 
-  def raw_json
-    @json
-  end
-
   def spec
     @spec ||= JSON.parse @json
   end
@@ -63,6 +59,10 @@ class McParseface
 
   def camera_rotations
     spec['angles']
+  end
+
+  def to_json obj
+    obj.to_json
   end
 
 end
@@ -87,7 +87,7 @@ class CollisionDetector
   end
 
   def collisions
-    @walls
+     c = @walls
       .map do |w|
         dist = distance_between w, @sight
         id = dist == Float::INFINITY ? nil : w.id
@@ -95,6 +95,8 @@ class CollisionDetector
       end
       .sort_by { |coll| coll[ :distance ] }
       .first
+
+    c ? c : { wall: nil, distance: Float::INFINITY }
   end
 
 end
@@ -130,8 +132,8 @@ class Attempt
 end
 
 parsed = McParseface.new ARGV
-puts Attempt.new( parsed, Wall, Sight ).()
-
+result = Attempt.new( parsed, Wall, Sight ).()
+puts result
 
 
 
