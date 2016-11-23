@@ -52,22 +52,29 @@ module LineLike
 
     def on_ray? x, y
       unless slope.nil?
-        y == slope * xo + bias
+        # TODO refactor and remove rounding dependency
+        # y == slope * x + bias
+        y_at_x = slope * x + bias
+        ( y_at_x - ROUNDING_ERROR .. y_at_x + ROUNDING_ERROR ).cover? y
       else
         x == xo
       end
     end
 
     def slope
-      case ( rotation / ( PI / 2 ) + 1 ).floor
-      when 1
+      case quadrant
+      when :q1
         Math.tan rotation
-      when 2
-        -1 * Math.tan( PI - rotation ).to_f
-      when 3
-        Math.tan( rotation - PI ).to_f
-      when 4
-        -1 * Math.tan( PI - ( rotation - PI ) ).to_f
+      when :q2
+        -1 * Math.tan( PI - rotation )
+      when :q3
+        Math.tan( rotation - PI )
+      when :q4
+        -1 * Math.tan( PI - ( rotation - PI ) )
+      when :east, :west
+        0
+      when :north, :south
+        nil
       end
     end
 
@@ -80,14 +87,14 @@ module LineLike
         :west
       elsif rotation == PI * 1.5
         :south
-      elsif rotation > 0
-        :q1
-      elsif rotation > PI / 2
-        :q2
-      elsif rotation > PI
-        :q3
       elsif rotation > PI * 1.5
         :q4
+      elsif rotation > PI
+        :q3
+      elsif rotation > PI / 2
+        :q2
+      elsif rotation > 0
+        :q1
       end
     end
 
