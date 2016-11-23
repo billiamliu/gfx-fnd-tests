@@ -2,9 +2,22 @@ module LineLike
 
   ROUNDING_ERROR = 0.001
   PI = Math::PI
+  INF = Float::INFINITY
 
   def self.equal? a, b
     a == b || ( a - b ).abs < ROUNDING_ERROR
+  end
+
+  def self.intercept_distance_between line, ray
+    return INF unless ray.intercept? line
+    intercept = ray.intercept_at line
+    find_distance ray.xo, ray.yo, *intercept
+  end
+
+  def self.find_distance xo, yo, xe, ye
+    dx = xe - yo
+    dy = ye - yo
+    Math.sqrt( dx ** 2.0 + dy ** 2.0 ).abs
   end
 
   module Ray
@@ -18,27 +31,51 @@ module LineLike
     end
 
     def exist_at? x, y
-      on_ray?( x, y ) && if rotation < PI
+      return false unless on_ray? x, y
+
+      case quadrant
+      when :east
+        x >= xo
+      when :west
+        x <= xo
+      when :north
         y >= yo
-      else
+      when :south
         y <= yo
+      else
+        if rotation < PI
+          y >= yo
+        else
+          y <= yo
+        end
       end
     end
 
     def on_ray? x, y
-      slope * x + bias
+      unless slope.nil?
+        # TODO refactor and remove rounding dependency
+        # y == slope * x + bias
+        y_at_x = slope * x + bias
+        ( y_at_x - ROUNDING_ERROR .. y_at_x + ROUNDING_ERROR ).cover? y
+      else
+        x == xo
+      end
     end
 
     def slope
-      case ( rotation / ( PI / 2 ) + 1 ).floor
-      when 1
+      case quadrant
+      when :q1
         Math.tan rotation
-      when 2
-        -1 * Math.tan( PI - rotation ).to_f
-      when 3
-        Math.tan( rotation - PI ).to_f
-      when 4
-        -1 * Math.tan( PI - ( rotation - PI ) ).to_f
+      when :q2
+        -1 * Math.tan( PI - rotation )
+      when :q3
+        Math.tan( rotation - PI )
+      when :q4
+        -1 * Math.tan( PI - ( rotation - PI ) )
+      when :east, :west
+        0
+      when :north, :south
+        nil
       end
     end
 
@@ -51,14 +88,14 @@ module LineLike
         :west
       elsif rotation == PI * 1.5
         :south
-      elsif rotation > 0
-        :q1
-      elsif rotation > PI / 2
-        :q2
-      elsif rotation > PI
-        :q3
       elsif rotation > PI * 1.5
         :q4
+      elsif rotation > PI
+        :q3
+      elsif rotation > PI / 2
+        :q2
+      elsif rotation > 0
+        :q1
       end
     end
 
@@ -114,6 +151,7 @@ module LineLike
   end
 
   def intercept? line
+    return false if parallel_to? line
     return false unless q = intercept_at( line )
     
     exist_at?( *q ) && line.exist_at?( *q )
@@ -125,24 +163,53 @@ module LineLike
   end
 
   def exist_at? x, y
-    on_ray?( x, y ) && if dy >= 0
-      ( yo..(yo + dy) ).cover? y
-    else
-      ( (yo + dy)..yo ).cover? y
+    return false unless on_ray? x, y
+    
+    case quadrant
+      when :east
+        y == yo && cover_x?( x )
+      when :north
+        x == xo && cover_y?( y )
+      when :west
+        y == yo && cover_x?( x )
+      when :south
+        x == xo && cover_y?( y )
+      else
+        cover_x?( x ) && cover_y?( y )
     end
   end
 
+  def cover_x? x
+    min, max = [ xo, xo + dx ].minmax
+    ( min..max ).cover? x
+  end
+
+  def cover_y? y
+    min, max = [ yo, yo + dy ].minmax
+    ( min..max ).cover? y
+  end
+
   def on_ray? x, y
-    slope * x + bias
+    unless slope.nil?
+      slope * x + bias
+    else
+      x == xo
+    end
   end
 
   def intercept_at line
     return nil if parallel_to? line
-    # y = mx + b
-    # x = ( b2 - b1 ) / ( m1 - m2 )
-    x = ( line.bias - bias ) / ( slope - line.slope ).to_f
-    y = slope * x + bias
-    [ x, y ]
+    unless slope.nil? || line.slope.nil?
+      x = ( line.bias - bias ) / ( slope - line.slope ).to_f
+      y = slope * x + bias
+      [ x, y ]
+    else
+      if slope.nil?
+        [ xo, line.slope * xo + line.bias ]
+      else # line.slope is nil
+        [ line.xo, slope * xo + bias ]
+      end
+    end
   end
 
   def theta

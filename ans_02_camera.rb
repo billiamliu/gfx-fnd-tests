@@ -2,6 +2,42 @@ require 'json'
 require_relative 'attempt/line_like'
 require_relative 'attempt/pixelator'
 
+class Wall
+  include LineLike
+
+  attr_reader :xo, :yo, :xe, :ye, :id
+
+  def initialize xo, yo, xe, ye, id
+    @xo, @yo, @xe, @ye, @id = xo, yo, xe, ye, id
+  end
+
+  def dx
+    @xe - @xo
+  end
+
+  def dy
+    @ye - @yo
+  end
+
+end
+
+class Sight
+  include LineLike::Ray
+
+  attr_reader :xo, :yo, :rotation, :id
+
+  def initialize xo, yo, rotation, id
+    @xo, @yo, @rotation, @id = xo, yo, rotation, id
+  end
+
+  def rotation= new_r
+    Sight.new xo: xo, yo: yo, rotation: new_r
+  end
+
+end
+
+# things specfic to this attempt, below:
+
 class McParseface
 
   def initialize argv
@@ -25,49 +61,88 @@ class McParseface
     [ spec['camera_x'], spec['camera_y'] ]
   end
 
-  def angles
+  def camera_rotations
     spec['angles']
   end
 
 end
 
-class Line
-  include LineLike
+class CollisionDetector
 
-  def initialize xo:, yo:, xe:, ye:
-    @xo, @yo, @xe, @ye = xo, yo, xe, ye
+  def initialize walls, sight
+    @walls, @sight = walls, sight
   end
 
-  private
-
-  def dx
-    @xe - @xo
+  def distance_between wall, sight
+    LineLike.intercept_distance_between wall, sight
   end
 
-  def dy
-    @ye - @yo
+  def collisions
+    @walls
+      .take_while { |wall| wall.intercept? @sight }
+      .map do |wall|
+        { wall: wall.id, distance: distance_between( wall, @sight ) }
+      end
+      .sort_by { |res| res[:distance] }
+  end
+
+  def collisions
+    @walls
+      .map do |w|
+        dist = distance_between w, @sight
+        id = dist == Float::INFINITY ? nil : w.id
+        { wall: id, distance: dist }
+      end
+      .sort_by { |coll| coll[ :distance ] }
+      .first
   end
 
 end
 
-class Ray
-  include LineLike::Ray
+class Attempt
 
-  def initialize xo:, yo:, rotation:
-    @xo, @yo, @rotation = xo, yo, rotation
+  def initialize spec, wall, sight
+    @spec, @wall, @sight = spec, wall, sight
+  end
+
+  def get_collisions walls, sight
+    CollisionDetector.new( walls, sight ).collisions
+  end
+
+  def call
+    sights.map { |s| get_collisions( walls, s ) }
   end
 
   private
 
-  def xo
-    @xo
+  def walls
+    @spec.walls.each_with_index.map do |coords,i|
+      @wall.new( *coords, i )
+    end
   end
 
-  def yo
-    yo
+  def sights
+    @spec.camera_rotations.each_with_index.map do |r,i|
+      @sight.new( *@spec.camera, r, i )
+    end
   end
-
-  def rotation
-    @rotation
-  end
+    
 end
+
+parsed = McParseface.new ARGV
+puts Attempt.new( parsed, Wall, Sight ).()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

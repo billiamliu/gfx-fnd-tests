@@ -1,22 +1,11 @@
-module RoundingRefinement
-  refine Float do
-
-    alias :__old_round__ :round
-
-    def round
-      # this keeps pixels at the top left when split between two options
-      self >= 0 ? ( self - 0.5 ).ceil : ( self + 0.5).floor
-    end
-
-  end
-
-end
+require_relative 'rounding_refinement'
 
 module Pixelator
-
   using RoundingRefinement
 
   module Line
+    # NOTE maybe turn this into a enumerable?
+    # currently letting users wrap it with #enum_for
     # include Enumerable
 
     def each
@@ -108,6 +97,8 @@ module Pixelator
 
     class LineLike
       include ::Pixelator::Line
+
+      # these methods are required to mix in Pixelator
       attr_reader :xo, :yo, :slope, :quadrant
 
       def initialize xo, yo, slope, quadrant, range = 10
