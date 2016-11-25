@@ -1,0 +1,48 @@
+Given a JSON description of a room and a camera, draw what the camera sees.
+
+Alright, it is time to make Woof3d, which is basically a Nazi-killing game that will take the world by
+storm.  Sorta.
+
+Your program should take two arguments: the first is an input .json file, the second is output.
+
+The input file will contain one JSON object, roughly like this:
+
+    {
+      walls: [
+        { x0: -1, y0: 1, x1: 3, y1: 5, color: {255, 0, 0} },
+        { x0: 3, y0: -2, x1: 3, y1: 2, color: {0, 255, 0}},
+      ],
+      camera: {
+        x: 1.0,
+        y: 0.0,
+        theta: 0.785,
+        h_fov = 1,
+        width: 500,
+        height: 300,
+      },
+      ground_color: [60, 60, 60],
+      sky_color: [135, 206, 235],
+    }
+
+The output should be a type-P3 PNM file (a.k.a. a PPM).  It should use 8-bit color depth, which is
+to say the "maximum color value" should be 255.
+
+In this case, it's a 500x300 PNM, so the first part of the file will look like this (although you
+can add comments, if you want):
+
+  P3
+  500 300
+  255
+
+The H_fov parameter indicates how wide the view of the camera should be, in radians.  So in the
+given example, the leftmost edge of the view should be pointing at 1.285 (that's theta+(h_fov/2)),
+and the rightmost edge should be pointing at 0.285.  Scale the vertical FOV so that one pixel
+horizontal is the same angle-difference as one pixel verticle (i.e. assume that pixels on your
+monitor are square, which is false, but oh well).  So in this case, the v_fov will be 0.6, because
+
+  v_fov = h_fov * height/width = 1.0 * 300/500 = 0.6.
+
+Also, if no wall is visible, the bottom half of the screen should show the "ground_color", and the
+top half should show the "sky_color".
+
+That's it.  Make it happen.
