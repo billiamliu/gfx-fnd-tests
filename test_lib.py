@@ -39,6 +39,8 @@ def diff_json_loosely(left_file, right_file):
     def equal_with_float_looseness(left, right):
         tolerance = 0.001
         tl, tr = type(left), type(right)
+        if tl == int: tl = float
+        if tr == int: tr = float
         if tl != tr: return False
         if tl is float: return left - tolerance < right < left + tolerance
         if tl is list:
@@ -46,7 +48,7 @@ def diff_json_loosely(left_file, right_file):
         if tl is dict:
             if set(left.keys()) != set(right.keys()) : return False
             return all(equal_with_float_looseness(right[k], left[k]) for k in left)
-        return True
+        return left == right
     return equal_with_float_looseness(left_obj, right_obj)
 
 def run_argline(argline, tmp_fh, tmp_fn, testee, target_test):
