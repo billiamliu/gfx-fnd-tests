@@ -9,8 +9,8 @@ The input file will contain one JSON object, roughly like this:
 
     {
       walls: [
-        { x0: -1, y0: 1, x1: 3, y1: 5, color: {255, 0, 0} },
-        { x0: 3, y0: -2, x1: 3, y1: 2, color: {0, 255, 0}},
+        { x0: -1, y0: 1, x1: 3, y1: 5, color: [255, 0, 0] },
+        { x0: 3, y0: -2, x1: 3, y1: 2, color: [0, 255, 0] },
       ],
       camera: {
         x: 1.0,
