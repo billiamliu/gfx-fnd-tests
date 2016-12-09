@@ -1,0 +1,15 @@
+{
+  "walls": [
+  ],
+  "ground_color": [60, 60, 60],
+  "sky_color": [135, 206, 235],
+  "camera": {
+    "x": 0.0,
+    "y": 0.0,
+    "theta": 0.0,
+    "h_fov": 1,
+    "width": 5,
+    "height": 4
+  }
+}
+

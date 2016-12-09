@@ -9,14 +9,14 @@ The input file will contain one JSON object, roughly like this:
 
     {
       walls: [
-        { x0: -1, y0: 1, x1: 3, y1: 5, color: {255, 0, 0} },
-        { x0: 3, y0: -2, x1: 3, y1: 2, color: {0, 255, 0}},
+        { x0: -1, y0: 1, x1: 3, y1: 5, color: [255, 0, 0] },
+        { x0: 3, y0: -2, x1: 3, y1: 2, color: [0, 255, 0] },
       ],
       camera: {
         x: 1.0,
         y: 0.0,
         theta: 0.785,
-        h_fov = 1,
+        h_fov: 1,
         width: 500,
         height: 300,
       },
@@ -34,15 +34,29 @@ can add comments, if you want):
   500 300
   255
 
-The H_fov parameter indicates how wide the view of the camera should be, in radians.  So in the
-given example, the leftmost edge of the view should be pointing at 1.285 (that's theta+(h_fov/2)),
-and the rightmost edge should be pointing at 0.285.  Scale the vertical FOV so that one pixel
-horizontal is the same angle-difference as one pixel verticle (i.e. assume that pixels on your
-monitor are square, which is false, but oh well).  So in this case, the v_fov will be 0.6, because
+If no wall is visible, the bottom half of the screen should show the "ground_color", and the
+top half should show the "sky_color".  If camera.height is odd, treat the middle-line as sky.
 
-  v_fov = h_fov * height/width = 1.0 * 300/500 = 0.6.
+The H_fov (horizontal field of view) parameter indicates how wide the view of the camera should be,
+in radians.  So in the given example, the leftmost edge of the view should be pointing at 1.285
+(that's theta+(h_fov/2)), and the rightmost edge should be pointing at 0.285.  Mind you, that's the
+leftmost and rightmost edges of the screen; the centre of the leftmost column of pixels will be a
+touch inward from there.
 
-Also, if no wall is visible, the bottom half of the screen should show the "ground_color", and the
-top half should show the "sky_color".
+Scale the vertical FOV so that one pixel horizontal is the same angle-difference as one pixel
+vertical (i.e. assume that pixels on your monitor are square, which is false, but oh well).  So in
+this case, the v_fov will be 0.6, because
+
+  v_fov = h_fov * height/width = 1.0 * 300/500 = 0.6
+
+Walls are 2 units tall, centred at the camera-height (by "camera-height", I mean the height that the
+camera is at in the virtual world, not the camera.height property in the input JSON, which is
+unrelated).  That is, walls extend 1 unit "up" from the camera's height, and 1 unit "down" from the
+camera's height.
+
+Let's agree, for simplicity, that if the ray that passes through the centre of the pixel hits the
+wall, draw the wall, and otherwise do not.  I suspect this'll look a tiny bit dodgy, but tough shit,
+it's easier than learning to do sampling.
 
 That's it.  Make it happen.
+

@@ -1,0 +1,2 @@
+cp out.pnm TMP
+PROG in.json TMP

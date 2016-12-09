@@ -1,0 +1,10 @@
+{
+ "collisions": [
+  { "distance": 4.5, "wall": 0 },
+  { "distance": 2.338891660847811, "wall": 1 },
+  { "distance": 2.388888888888889, "wall": 1 },
+  { "distance": 1.7777777777777777, "wall": 2 },
+  { "distance": 1.7405705383053476, "wall": 2 },
+  { "distance": 3.9999999999999982, "wall": 2 }
+ ]
+}
