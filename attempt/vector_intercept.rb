@@ -81,7 +81,7 @@ class PointVector
     # t = ( q - p ) * s / ( r * s )
     r, s = vector, o.vector
     q, p = o.point, point
-    rs = rs
+    rs = r * s
     q_p = q - p
     partial = q_p / rs
     t = partial * s
@@ -107,7 +107,6 @@ class PointVector
 
 end
 
-a = PointVector.new( Vector.new( -5, 5 ), Vector.new( 10, 0 ) )
-b = PointVector.new( Vector.new( 0, 0 ), UnitVector.new( Math::PI / 2 ) )
-
-p b.intercept( a )
+# a = PointVector.new( Vector.new( -5, 5 ), Vector.new( 10, 0 ) )
+# b = PointVector.new( Vector.new( 0, 0 ), UnitVector.new( Math::PI / 2 ) )
+# p b.intercept( a )
