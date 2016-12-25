@@ -34,7 +34,7 @@ class Scene
   
   # dependency CollisionDetector Grid Horizon
 
-  attr_reader :width, :height
+  attr_reader :width, :height, :collision_detector
 
   def initialize width, height
     @width, @height = width, height
@@ -60,12 +60,18 @@ class Scene
   def camera= camera
     throw "camera has different width than scene's horizon" if camera.fov_angles.length != horizon.width
 
+    @rays = camera.fov_angles.map do |angle|
+      c = camera.clone
+      c.rotation = angle
+      c
+    end
+
     @camera = camera
     apply_camera_to_horizon
   end
-  
-  def walls= walls
-    @walls = walls
+
+  def camera
+    @camera
   end
 
   def grid= g
@@ -73,7 +79,11 @@ class Scene
   end
 
   def collision_detector= d
+    d.walls = walls
+    d.rays = rays
     @collision_detector = d
+
+    apply_collisions_to_horizon
   end
 
   def horizon= h
@@ -82,16 +92,17 @@ class Scene
 
   private
 
-  def apply_collision_to_horizon
+  def apply_collisions_to_horizon
     collisions = @collision_detector.collisions
     collisions
-      .map { |angle| [ angle[0], visible_collision( angle[1] ) ] }
+      .map { |angle| [ angle[0], first_collision( angle[1] ) ] }
       .each do |angle|
         angle, collision = angle
+        horizon.set( angle, collision )
       end
   end
 
-  def visible_collision list
+  def first_collision list
     list
       .sort_by { |dist, wall| dist }
       .first
@@ -184,6 +195,10 @@ class Wall
 
 end
 
+class Ray
+  include LineLike::Ray
+end
+
 
 class Camera
   include LineLike::Ray
@@ -230,13 +245,8 @@ camera = Camera.new( 0, 0, Math::PI / 2, Math::PI / 2 )
 camera.h_resolution = 40
 
 scene.camera = camera
-p scene.horizon
 
 detect = CollisionDetector.configure scene
-detect.walls = walls
-detect.rays = camera.fov_angles.map do |angle|
-  c = camera.clone
-  c.rotation = angle
-  c
-end
-# detect.collisions.map { |x| p x }
+scene.walls = walls
+p detect.collisions
+# scene.horizon.horizon.each { |k,v| p v }
