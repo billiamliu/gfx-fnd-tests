@@ -80,19 +80,19 @@ class PointVector
     # NOTE t is the scaling factor for this line to intercept other
     # t = ( q - p ) * s / ( r * s )
     r, s = vector, o.vector
-    q, p = o.point, point
+    p, q = point, o.point
     rs = r * s
     q_p = q - p
     partial = q_p / rs
     t = partial * s
     u = partial * r
 
-    if rs == 0 && q_p * r
+    if rs == 0 && q_p * r == 0
       [ :colinear, nil ]
-    elsif rs == 0 && q_p * r
+    elsif rs == 0 && q_p * r != 0
       [ :parallel, nil ]
     elsif rs != 0 && ( 0..1 ).include?( t ) && ( 0..1 ).include?( u )
-      [ true, t, u ]
+      [ true, p + t * r, t, u ]
     else
       [ false, t, u ]
     end
