@@ -36,22 +36,22 @@ class Vector
     @x, @y = x, y
   end
 
-  def -( o )
+  def - o
     self.class.new( x - o.x, y - o.y )
   end
 
-  def +( o )
+  def + o
     self.class.new( x + o.x, y + o.y )
   end
 
   # cross product
-  def *( o )
+  def * o
     o.class == Scalar ? 
       self.class.new( x * o.c, y * o.c ) :
       Scalar.new( x * o.y - y * o.x )
   end
 
-  def /( o )
+  def / o
     o.class == Scalar ?
       self.class.new( x / o.c, y / o.c ) :
       Scalar.new( x / o.x + y / o.y )
@@ -76,16 +76,19 @@ class PointVector
   end
 
   def intercept o
+    # p + tr = q + us
     # t = ( q - p ) * s / ( r * s )
-    partial = ( o.point - point ) / ( vector * o.vector )
+    rs = vector * o.vector
+    q_p = o.point - point
+    partial = q_p / rs
     t = partial * o.vector
     u = partial * vector
 
-    if vector * o.vector == 0 && ( o.point - point ) * vector == 0
+    if rs == 0 && q_p * vector == 0
       [ :colinear, nil ]
-    elsif vector * o.vector == 0 && ( o.point - point ) * vector != 0
+    elsif rs == 0 && q_p * vector != 0
       [ :parallel, nil ]
-    elsif vector * o.vector != 0 && ( 0..1 ).include?( t ) && ( 0..1 ).include?( u )
+    elsif rs != 0 && ( 0..1 ).include?( t ) && ( 0..1 ).include?( u )
       [ true, t, u ]
     else
       [ false, t, u ]
@@ -94,6 +97,7 @@ class PointVector
 
   private
 
+  # TODO test approx parallel lines to see if this is still needed
   def approx_zero? n
     n > ( 0 - @fuzziness ) && n < ( 0 + @fuzziness )
   end
