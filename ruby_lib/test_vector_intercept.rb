@@ -46,5 +46,18 @@ class TestVectorIntercept < MiniTest::Test
     assert_equal [ false, Scalar.new( -5 ), Scalar.new( 0.25 ) ], @q1.intercept( @v_5 )
   end
 
+  def test_length
+    assert_equal 20, @h0.length
+    assert_equal 20, @v0.length
+    assert_equal Math.sqrt( 2 ), @q1.length
+    assert_equal Math.sqrt( 200 ), @q1_long.length
+  end
+
+  def test_approx_zero_slope
+    l1 = PointVector.from_a [ [ -1_000_000, 0 ], [ 2_000_000, 0 ] ]
+    l2 = PointVector.from_a [ [ -1_000_000, 0.000_000_1 ], [ 2_000_000, -0.000_000_2 ] ]
+    assert_equal [ true, Vector.new( 0, 0 ), Scalar.new( 0.5 ), Scalar.new( 0.5 ) ], l1.intercept( l2 )
+  end
+
 end
 

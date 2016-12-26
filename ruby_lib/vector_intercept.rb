@@ -114,8 +114,12 @@ class PointVector
 
   attr_reader :point, :vector
 
-  def initialize point, vector, fuzziness = 0.0001
-    @point, @vector, @fuzziness = point, vector, fuzziness
+  def initialize point, vector
+    @point, @vector = point, vector
+  end
+
+  def length
+    Math.sqrt vector.x * vector.x + vector.y * vector.y
   end
 
   def intercept o
@@ -128,6 +132,7 @@ class PointVector
     q_p = q - p
 
     if rs == zero && q_p * r == zero
+      # NOTE for calculating overlap
       # t0 = ( q - p ) dot r / ( r dot r )
       # t1 = ( q + s - p ) dot r / ( r dot r )
       # t1 = t0 + s dot r / ( r dot r )
@@ -154,11 +159,6 @@ class PointVector
 
   def zero
     @zero ||= Scalar.new 0
-  end
-
-  # TODO test approx parallel lines to see if this is still needed
-  def approx_zero? n
-    n > ( 0 - @fuzziness ) && n < ( 0 + @fuzziness )
   end
 
 end
