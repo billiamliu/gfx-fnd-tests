@@ -122,7 +122,7 @@ class PointVector
     Math.sqrt vector.x * vector.x + vector.y * vector.y
   end
 
-  def intercept o
+  def intersect o
     # NOTE http://stackoverflow.com/a/565282
     # p + t r = q + u s
     # t = ( q - p ) * s / ( r * s )
