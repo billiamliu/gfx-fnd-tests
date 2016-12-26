@@ -1,32 +1,36 @@
 class Scalar
   include Comparable
 
+  LIMIT = 0.000_000_1
+
   def self.from_a arr
     new arr.first
   end
-
-  attr_reader :c
 
   def initialize constant
     @c = constant.to_f
   end
 
+  def c
+    ( -LIMIT .. LIMIT ).include?( @c ) ? 0.0 : @c
+  end
+
   def + o
-    self.class.new c + o.c
+    self.class.new( c + o.c )
   end
 
   def - o
-    self.class.new c - o.c
+    self.class.new( c - o.c )
   end
 
   def * o
-    o.class == Vector ?
+    o.is_a?( Vector ) ?
       Vector.new( o.x * c, o.y * c ) :
       self.class.new( c * o.c )
   end
 
   def / o
-    o.class == Vector ?
+    o.is_a?( Vector ) ?
       Vector.new( o.x / c, o.y / c ) :
       self.class.new( c / o.c )
   end
@@ -40,6 +44,7 @@ class Scalar
   end
 
 end
+
 
 class Vector
 
@@ -63,20 +68,20 @@ class Vector
 
   # cross product
   def * o
-    o.class == Scalar ? 
+    o.is_a?( Scalar ) ?
       mult_scalar( o ) :
       Scalar.new( x * o.y - y * o.x )
   end
   
   # dot product
   def dot o
-    o.class == Scalar ? 
+    o.is_a?( Scalar ) ?
       mult_scalar( o ) :
       Scalar.new( x * o.x + y * o.y )
   end
 
   def / o
-    o.class == Scalar ?
+    o.is_a?( Scalar ) ?
       self.class.new( x / o.c, y / o.c ) :
       throw( "cannot divid a vector by another vector" )
   end
@@ -97,6 +102,7 @@ class Vector
 
 end
 
+
 class UnitVector < Vector
 
   def initialize theta
@@ -104,6 +110,7 @@ class UnitVector < Vector
   end
 
 end
+
 
 class PointVector
 
