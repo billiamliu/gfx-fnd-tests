@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require_relative 'point_vector'
+require_relative 'telemetry'
 
 class TestPointVector < MiniTest::Test
 
@@ -57,6 +58,25 @@ class TestPointVector < MiniTest::Test
     l1 = PointVector.from_a [ [ -1_000_000, 0 ], [ 2_000_000, 0 ] ]
     l2 = PointVector.from_a [ [ -1_000_000, 0.000_000_1 ], [ 2_000_000, -0.000_000_2 ] ]
     assert_equal [ true, Vector.new( 0, 0 ), Scalar.new( 0.5 ), Scalar.new( 0.5 ) ], l1.intersect( l2 )
+  end
+
+  def test_useful_intersector
+    intersector = Intersector.build point_vector_1: @h0, point_vector_2: @v0
+    Telemetry.configure intersector
+
+    intersect = intersector.()
+    assert_equal true, intersect[ 0 ]
+
+    intersect = Intersector.( point_vector_1: @h0, point_vector_2: @v0 )
+    assert_equal true, intersect[ 0 ]
+  end
+
+  def test_useful_intersector_substitute
+    intersector = Intersector::Substitute.build point_vector_1: @h0, point_vector_2: @v0
+    telemetry = Telemetry.configure intersector
+
+    assert_equal :null, intersector.().first
+    assert_equal 1, telemetry.sink.length
   end
 
 end

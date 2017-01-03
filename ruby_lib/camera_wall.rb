@@ -49,6 +49,7 @@ class Camera < PointVector
 end
 
 
+
 module ImmutableCamera
 
   refine Camera do
