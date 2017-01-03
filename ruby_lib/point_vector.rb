@@ -129,6 +129,7 @@ class PointVector
     Math.sqrt vector.x * vector.x + vector.y * vector.y
   end
 
+  # TODO pending deprecation because of Intersector class
   def intersect o
     # NOTE http://stackoverflow.com/a/565282
     # p + t r = q + u s
@@ -173,90 +174,33 @@ end
 
 class Intersector
 
-  def self.call 
-  end
-
-  def self.build
-  end
-
-  def initialize pv1, pv2
-    @pv1, @pv2 = pv1, pv2
-  end
-
-  private
-
-  def intersect
-
-    # NOTE http://stackoverflow.com/a/565282
-    # p + t r = q + u s
-    # t = ( q - p ) * s / ( r * s )
-    r, s = pv1.vector, pv2.vector
-    p, q = pv1.point, pv2.point
-    rs = r * s
-    q_p = q - p
-
-    rs_zero = is_zero? rs
-    qpr_zero = is_zero? q_p * r
-    if rs_zero && qpr_zero
-      # NOTE for calculating overlap
-      # t0 = ( q - p ) dot r / ( r dot r )
-      # t1 = ( q + s - p ) dot r / ( r dot r )
-      # t1 = t0 + s dot r / ( r dot r )
-      return [ :colinear, nil ]
-    elsif rs_zero && qpr_zero
-      return [ :parallel, nil ]
-    end
-
-    t = q_p * s / rs
-    u = q_p * r / rs
-
-    if rs != zero && ( 0..1 ).include?( t.c ) && ( 0..1 ).include?( u.c )
-      return [ true, p + t * r, t, u ]
-    else
-      return [ false, t, u ]
-    end
-
-  end
-
-  def is_zero? scalar
-    scalar.c == 0
-  end
-
-end
-
-
-
-class Intersector
-
   # optional dependency: telemetry
   attr_accessor :telemetry
 
-  def self.call obj
-    build( obj ).()
+  def self.call pv1, pv2
+    build.( pv1, pv2 )
+  end
+  
+  def self.configure receiver
+    receiver.intersector = build
   end
 
-  def self.build( point_vector_1:, point_vector_2: )
-    new point_vector_1, point_vector_2
+  def self.build
+    new
   end
 
-  def initialize pv1, pv2
-    @pv1, @pv2 = pv1, pv2
-  end
-
-  def call
-    find_intersect
+  def call pv1, pv2
+    find_intersect pv1, pv2
   end
 
   private
-
-  attr_reader :pv1, :pv2
 
   def record event, payload
     telemetry.record( event, payload ) if telemetry
     payload
   end
 
-  def find_intersect
+  def find_intersect pv1, pv2
     record :finding_intersect, [ pv1, pv2 ]
 
     # NOTE http://stackoverflow.com/a/565282
@@ -296,8 +240,8 @@ class Intersector
 
   module Substitute
 
-    def self.build( point_vector_1:, point_vector_2: )
-      Intersector.new point_vector_1, point_vector_2
+    def self.build
+      Intersector.new
     end
 
     class Intersector < ::Intersector

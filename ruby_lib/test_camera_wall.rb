@@ -78,5 +78,13 @@ class TestWrapper < MiniTest::Test
         .map { |r| r[0] }
   end
 
+  def test_collision_detector
+    p CollisionDetector.( @cq1, [ @wq1 ] )
+  end
+
 end
+
+
+
+
 

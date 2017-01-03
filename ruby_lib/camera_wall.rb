@@ -81,38 +81,41 @@ class Wall < PointVector
 
 end
 
+
 class CollisionDetector
 
-  def self.call camera, walls
+  attr_writer :intersector
+  attr_accessor :telemetry
+
+  def self.call subject, objects
+    build.( subject, objects )
   end
 
-  def initialize camera, walls
-    @camera, @walls = camera, walls
+  def self.build
+    new.tap do |ins|
+      Intersector.configure ins
+    end
   end
 
-  def collisions
-    hot @camera, @walls
+  def call subject, objects
+    objects.map do |o|
+      [ subject.theta, intersect( subject, o ), o ]
+    end
   end
 
   private
 
-  def camera_theta c
-    c.theta
+  def intersector
+    @intersector ||= Intersector::Substitute.build
+  end
+
+  def record event, payload
+    telemetry.record( event, payload ) if telemetry
+    payload
   end
 
   def intersect l1, l2
-    l1.intersect( l2 ).distance
-  end
-
-  def hot camera, walls
-    walls.map do |w|
-      [ camera_theta( camera ), intersect( camera, w ), w ]
-    end
-  end
-
-  # testing with arrays instead of PointVectors
-  def null camera, walls
-    # TODO
+    intersector.( l1, l2 )
   end
 
 end
