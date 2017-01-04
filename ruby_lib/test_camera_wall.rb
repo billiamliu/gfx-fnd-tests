@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require_relative 'point_vector'
 require_relative 'camera_wall'
 
 class TestWrapper < MiniTest::Test
@@ -12,75 +11,95 @@ class TestWrapper < MiniTest::Test
     @wv = Wall.new 0, -10, 0, 10 # a vert wall passing O
     @wh = Wall.new 10, 0, -10, 0 # a horiz wall passing O
 
-    @cv = Camera.new 0, 0, Math::PI / 2
-    @ch = Camera.new 0, 0, 0
+    @rv = Ray.new 0, 0, Math::PI / 2
+    @rh = Ray.new 0, 0, 0
 
-    @cq1 = Camera.new 0, 0, Math::PI / 4
-    @cq2 = Camera.new 0, 0, Math::PI / 4 * 3
+    @rq1 = Ray.new 0, 0, Math::PI / 4
+    @rq2 = Ray.new 0, 0, Math::PI / 4 * 3
   end
 
   def test_none_intersect
     assert_equal [ false, false ],
       [ @wq1, @wq3 ]
-        .map { |w| @cq1.intersect( w ) }
+        .map { |w| @rq1.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ :parallel, :parallel ],
       [ @wq2, @wq4 ]
-        .map { |w| @cq1.intersect( w ) }
+        .map { |w| @rq1.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ false, false ],
       [ @wq2, @wq4 ]
-        .map { |w| @cq2.intersect( w ) }
+        .map { |w| @rq2.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ :parallel, :parallel ],
       [ @wq1, @wq3 ]
-        .map { |w| @cq2.intersect( w ) }
+        .map { |w| @rq2.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ :colinear ],
       [ @wv ]
-        .map { |w| @cv.intersect( w ) }
+        .map { |w| @rv.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ :colinear ],
       [ @wh ]
-        .map { |w| @ch.intersect( w ) }
+        .map { |w| @rh.intersect( w ) }
         .map { |r| r[0] }
-  end
-
-  def test_distance
-    assert_equal Math.sqrt( 50 ).round( 7 ), @cq1.distance_to( @wq1 ).round( 7 )
-    assert_equal nil, @cq1.distance_to( @wq2 )
-    assert_equal Math.sqrt( 50 ).round( 7 ), @cq1.distance_to( @wq3 ).round( 7 ) * -1
-    assert_equal nil, @cq1.distance_to( @wq4 )
-
-    assert_equal 0, @cv.distance_to( @wh )
-    assert_equal 0, @ch.distance_to( @wv )
   end
 
   def test_intersect
     assert_equal [ true ],
       [ @wh ]
-        .map { |w| @cv.intersect( w ) }
+        .map { |w| @rv.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ true ],
       [ @wv ]
-        .map { |w| @ch.intersect( w ) }
+        .map { |w| @rh.intersect( w ) }
         .map { |r| r[0] }
 
     assert_equal [ true ],
       [ @wv ]
-        .map { |w| @cq1.intersect( w ) }
+        .map { |w| @rq1.intersect( w ) }
         .map { |r| r[0] }
+  end
+
+  def test_angles
+    # TODO refine test for accuracy
+    camera = Camera.new 0, 0, 0, Math::PI / 2
+    res = camera.angles 40
+    assert res.length == 40
   end
 
   def test_collision_detector
-    p CollisionDetector.( @cq1, [ @wq1 ] )
+    assert_equal(
+      6,
+      CollisionDetector.( @rq1, [ @wq1, @wq2, @wq3, @wq4, @wh, @wv ] ).length,
+      'should report all collisions by default'
+    )
+    
+    assert_equal(
+      1,
+      CollisionDetector.( @rq1, [ @wq1, @wq2, @wq3, @wq4, @wh ], true ).length,
+      'should only show first collision when flag is set'
+    )
+
+    assert_equal(
+      1,
+      CollisionDetector.( @rq1, @wq2 ).length,
+      'should work with a single object to collide with; i.e. not wrapped in array'
+    )
+
+    assert_equal(
+      [ nil ],
+      CollisionDetector.( @rq1, @wq2, true ),
+      'should not collide when given a non-collision test, and asking for visible_only'
+    )
   end
+
 
 end
 

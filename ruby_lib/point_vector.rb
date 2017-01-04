@@ -43,6 +43,10 @@ class Scalar
     [ @c ]
   end
 
+  def to_f
+    @c
+  end
+
 end
 
 
@@ -172,9 +176,62 @@ class PointVector
 end
 
 
-class Intersector
+class Intersect
 
-  # optional dependency: telemetry
+  attr_reader :type, :intersection
+
+  def self.types
+    [ :null, :colinear, :parallel, :intersect, :non_intersect ]
+  end
+
+  def initialize type = :null, scalar_1 = nil, scalar_2 = nil, intersection = nil
+    set_type type
+
+    set_scalars( scalar_1, scalar_2 ) unless scalar_1.nil?
+    set_intersection( intersection ) unless intersection.nil?
+  end
+
+  def possible?
+    type != :colinear && type != :parallel && type != :null
+  end
+
+  def intersector_scalar
+    @scalar_1
+  end
+  alias_method :scalar, :intersector_scalar
+
+  def scalars
+    [ @scalar_1, @scalar_2 ]
+  end
+
+  private
+
+  def set_type type
+    @type = type
+  end
+
+  def set_scalars one, two
+    if type == :intersect || type == :non_intersect
+      @scalar_1, @scalar_2 = one, two
+    else
+      throw ArgumentError, 'only intersect and potential intersect can have scalar values for the P and Q lines'
+    end
+  end
+
+  def set_intersection coord
+    if type == :intersect
+      @intersection == coord
+    else
+      throw ArgumentError, 'only intersect lines can have an intersection'
+    end
+  end
+
+end
+
+
+class Intersector
+  # NOTE Intersect is a Value Object dependency, consider refactor
+
   attr_accessor :telemetry
 
   def self.call pv1, pv2
@@ -213,23 +270,24 @@ class Intersector
 
     rs_zero = is_zero? rs
     qpr_zero = is_zero? q_p * r
+
     if rs_zero && qpr_zero
       # NOTE for calculating overlap
       # t0 = ( q - p ) dot r / ( r dot r )
       # t1 = ( q + s - p ) dot r / ( r dot r )
       # t1 = t0 + s dot r / ( r dot r )
-      return record :calculated_intersect, [ :colinear, nil ]
-    elsif rs_zero && qpr_zero
-      return record :calculated_intersect, [ :parallel, nil ]
+      return record :calculated_intersect, Intersect.new( :colinear )
+    elsif rs_zero && !qpr_zero
+      return record :calculated_intersect, Intersect.new( :parallel )
     end
 
     t = q_p * s / rs
     u = q_p * r / rs
 
     if !rs_zero && ( 0..1 ).include?( t.c ) && ( 0..1 ).include?( u.c )
-      return record :calculated_intersect, [ true, p + t * r, t, u ]
+      return record :calculated_intersect, Intersect.new( :intersect, t.to_f, u.to_f, ( p + t * r ).to_a )
     else
-      return record :calculated_intersect, [ false, t, u ]
+      return record :calculated_intersect, Intersect.new( :non_intersect, t.to_f, u.to_f )
     end
 
   end
@@ -237,6 +295,7 @@ class Intersector
   def is_zero? scalar
     scalar.c == 0
   end
+
 
   module Substitute
 
@@ -248,8 +307,8 @@ class Intersector
 
       private
 
-      def find_intersect
-        record( :found_intersect, [ :null, nil ] )
+      def find_intersect pv1, pv2
+        record( :found_intersect, Intersect.new )
       end
       
     end

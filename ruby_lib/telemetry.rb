@@ -1,7 +1,5 @@
 class Telemetry
 
-  attr_accessor :sink
-
   def self.call( msg = nil )
     instance = build
     instance.( msg )
@@ -15,7 +13,7 @@ class Telemetry
   end
 
   def self.build
-    new.tap { |ins| ins.sink = [] }
+    new
   end
 
   # returns and does not alter data, so this method can act as middleware
