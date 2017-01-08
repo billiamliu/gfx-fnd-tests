@@ -61,21 +61,18 @@ class TestPointVector < MiniTest::Test
   end
 
   def test_useful_intersector
-    intersector = Intersector.build point_vector_1: @h0, point_vector_2: @v0
+    intersector = Intersector.build
     Telemetry.configure intersector
 
-    intersect = intersector.()
-    assert_equal true, intersect[ 0 ]
-
-    intersect = Intersector.( point_vector_1: @h0, point_vector_2: @v0 )
-    assert_equal true, intersect[ 0 ]
+    intersect = intersector.( @h0, @v0 )
+    assert_equal :intersect, intersect.type
   end
 
   def test_useful_intersector_substitute
-    intersector = Intersector::Substitute.build point_vector_1: @h0, point_vector_2: @v0
+    intersector = Intersector::Substitute.build
     telemetry = Telemetry.configure intersector
 
-    assert_equal :null, intersector.().first
+    assert_equal :null, intersector.( @h0, @v0 ).type
     assert_equal 1, telemetry.sink.length
   end
 
