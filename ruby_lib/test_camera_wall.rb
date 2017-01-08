@@ -9,7 +9,9 @@ class TestWrapper < MiniTest::Test
     @wq3 = Wall.new 0, -10, -10, 0
     @wq4 = Wall.new 0, -10, 10, 0
     @wv = Wall.new 0, -10, 0, 10 # a vert wall passing O
+    @wv3 = Wall.new 3, 10, 3, -10
     @wh = Wall.new 10, 0, -10, 0 # a horiz wall passing O
+    @wh3 = Wall.new 10, 3, -10, 3
 
     @rv = Ray.new 0, 0, Math::PI / 2
     @rh = Ray.new 0, 0, 0
@@ -102,7 +104,7 @@ class TestWrapper < MiniTest::Test
 
   def test_collision_detector
     assert_equal(
-      1,
+      3,
       CollisionDetector.( @rq1, [ @wq1, @wq2, @wq3, @wq4, @wh, @wv ] ).length,
       'should report all possible collisions by default'
     )
@@ -124,6 +126,17 @@ class TestWrapper < MiniTest::Test
       CollisionDetector.( @rq1, @wq2, :only_visible ),
       'should not collide when given a non-collision test, and asking for visible_only'
     )
+  end
+
+  def test_filters
+    ray = Ray.new 0, 0, 0
+
+    assert_equal(
+      1,
+      CollisionDetector.( ray, [ @wh3, @wv3 ] ).length,
+      "should show one collision when given one positive and one negative test case"
+    )
+
   end
 
 

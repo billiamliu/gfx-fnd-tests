@@ -151,9 +151,7 @@ class CollisionDetector
   def filter_negative results
     record :filtering_negative
 
-    results.take_while do |result|
-      result[ 0 ].possible?
-    end
+    results.select { |result| result[ 0 ].possible? }
   end
 
   def filter_visible results
