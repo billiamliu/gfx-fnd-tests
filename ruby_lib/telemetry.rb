@@ -6,8 +6,9 @@ class Telemetry
   end
 
   def self.configure( receiver )
-    instance = build
     if receiver.telemetry then throw ArgumentError, "receiver: #{ receiver } already has telemetry" end
+
+    instance = build
     receiver.telemetry = instance
     instance
   end

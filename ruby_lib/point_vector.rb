@@ -192,7 +192,9 @@ class Intersect
   end
 
   def possible?
-    type != :colinear && type != :parallel && type != :null
+    type_check = type != :colinear && type != :parallel && type != :null
+    value_check = type_check && @scalar_1 >= 0 && (0..1).cover?( @scalar_2 )
+    type_check && value_check
   end
 
   def intersector_scalar
