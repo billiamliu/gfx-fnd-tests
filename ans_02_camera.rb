@@ -1,6 +1,6 @@
 require 'json'
-require_relative 'attempt/line_like'
-require_relative 'attempt/pixelator'
+require_relative 'ruby_lib/deprecated/line_like'
+require_relative 'ruby_lib/deprecated/pixelator'
 
 class Wall
   include LineLike

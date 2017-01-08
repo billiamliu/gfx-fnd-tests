@@ -1,6 +1,6 @@
 require_relative 'camera_wall'
 
-class PrettyPrinter
+class PixelExtractor
   # converts walls into pixel values
   attr_accessor :telemetry
 
@@ -46,7 +46,7 @@ class HorizonExpander
 
   def self.build
     new.tap do |ins|
-      PrettyPrinter.configure ins
+      PixelExtractor.configure ins
     end
   end
 
@@ -61,6 +61,7 @@ class HorizonExpander
       fill = get_fill_from point
       fill_column resolution, height_percent, fill
     end
+      .reverse
       .transpose
 
     record :end_expanding, ret
@@ -100,11 +101,18 @@ class HorizonExpander
   end
 
   def height_at distance
-    # distance at X: distance of 1 / 2 ^ X
-    # 0 => 100%
-    # 1 => 1/2
-    # 2 => 1/4
-    1 / 2 ** distance
+    half_res = 32
+    fov = Math::PI / 2
+    pixel_height = Math.tan( fov / 2.0 ) / half_res
+
+    wall_half_height = ( 1 / 2 ** distance ) / 2
+    pixel_qty = wall_half_height / pixel_height
+    pixel_qty / half_res
+  end
+
+  def height_at distance
+    # NOTE old, linear fisheye
+    1 / 2 ** distance # returns percentage in terms of 1.00
   end
 
   def distance_of data_point
@@ -195,7 +203,6 @@ class SceneExtrapolator
   end
   
   def call camera, walls, resolution
-    # find camera collisions for each horizon point
     rays = camera_rays( camera, resolution )
     get_collisions_for_rays( rays, walls )
     # expand horizon into 2D
@@ -209,10 +216,12 @@ class SceneExtrapolator
   private
 
   def camera_rays camera, resolution
+    record :getting_camera_rays, [ camera, resolution ]
     camera.angles resolution
   end
 
   def get_collisions_for_rays angles, walls
+    record :getting_collisions, [ angles, walls ]
     angles.map { |angle| collision_detector.( angle, walls, true ).first }
   end
 

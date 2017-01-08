@@ -9,6 +9,10 @@ class Ray < PointVector
     @x, @y, @theta = x, y, theta
   end
 
+  def to_s
+    "<Ray x:#{ x } y:#{ y } theta:#{ theta }>"
+  end
+
 end
 
 class Camera
@@ -39,13 +43,28 @@ class Camera
     self
   end
 
-  def angles res
-    # TODO implement better math to get accurate angles
-    increment = fov / res
+  def angles resolution
+    # NOTE this is the old one that should give fisheye
+    # TODO test against new one
+    increment = fov / resolution
     start = theta - fov / 2 + increment / 2
 
-    res.times.map do |n|
+    resolution.times.map do |n|
       Ray.new( x, y, start + increment * n )
+    end
+  end
+
+  def angles resolution
+    half_res = resolution / 2.0
+    pixel_width = Math.tan( fov / 2.0 ) / half_res
+
+    resolution.times.map do |n|
+
+      start = 0 - half_res + 0.5
+      pixel_x = ( start + n ) * pixel_width
+      angle = theta + Math.atan( pixel_x )
+
+      Ray.new x, y, angle
     end
   end
 
@@ -98,7 +117,7 @@ class CollisionDetector
   attr_writer :intersector
   attr_accessor :telemetry
 
-  def self.call subject, objects, only_visible = false
+  def self.call subject, objects, only_visible = nil
     build.( subject, objects, only_visible )
   end
 
@@ -112,7 +131,7 @@ class CollisionDetector
     end
   end
 
-  def call subject, objects, only_visible
+  def call subject, objects, only_visible = nil
     record :calculating_collisions
 
     objects = [ objects ] unless objects.respond_to? :map
@@ -121,12 +140,21 @@ class CollisionDetector
       [ intersect( subject, o ), o ]
     end
 
-    ret = filter_visible( ret ) if only_visible
+    ret = filter_negative( ret )
+    ret = filter_visible( ret ) if only_visible == :only_visible
 
     record :calculated_collisions, ret
   end
 
   private
+
+  def filter_negative results
+    record :filtering_negative
+
+    results.take_while do |result|
+      result[ 0 ].possible?
+    end
+  end
 
   def filter_visible results
     record :filtering_visible
